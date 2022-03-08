@@ -3,6 +3,7 @@
 use std::{env, fs, io::BufReader, path::Path};
 
 use anyhow::{Context, Result};
+use convert_case::{Case, Casing};
 use serde_json::{json, Value};
 
 struct Court {
@@ -60,13 +61,26 @@ impl Courts {
         }
         println!(");")
     }
+
+    pub fn display_rust_enum(&self) {
+        println!("pub enum Courts {{");
+        for court in self.inner.iter() {
+            // Doc-string
+            println!("\t\\\\\\ {}", court.name);
+            println!("\t{},", court.acronym.to_case(Case::Pascal));
+        }
+        println!("}}")
+    }
 }
 
 fn main() -> Result<()> {
     let path = env::args_os()
         .nth(1)
         .with_context(|| "Filename not supplied")?;
-    Courts::from_file(path)?.display_postgres_enum();
+    let courts = Courts::from_file(path)?;
+
+    courts.display_postgres_enum();
+    courts.display_rust_enum();
 
     Ok(())
 }

@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.56"
 serde_json = "1.0.79"
+convert_case = "0.5.0"
