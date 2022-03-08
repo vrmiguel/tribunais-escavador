@@ -56,9 +56,9 @@ impl Courts {
 
     pub fn display_postgres_enum(&self) {
         println!("CREATE TYPE kyc.courts AS enum(");
-        for court in self.inner.iter() {
-            println!("\t\"{}\",", court.acronym);
-        }
+        self.inner
+            .iter()
+            .for_each(|court| println!("\t'{}',", court.acronym));
         println!(");")
     }
 
