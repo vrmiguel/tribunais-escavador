@@ -2,7 +2,7 @@
 
 use std::{env, fs, io::BufReader, path::Path};
 
-use anyhow::{Context, Result, ensure};
+use anyhow::{ensure, Context, Result};
 use convert_case::{Case, Casing};
 use serde_json::{json, Value};
 
@@ -13,6 +13,19 @@ struct Court {
 
 struct Courts {
     inner: Vec<Court>,
+}
+
+fn new_case(input: &str) -> String {
+    match input.contains('-') {
+        true => {
+            let terms: Vec<_> = input.split('-').map(|term| term.to_case(Case::Pascal)).collect();
+            
+            terms.join("_")
+        },
+        false => {
+            input.to_case(Case::Pascal)
+        },
+    }
 }
 
 impl Courts {
@@ -55,10 +68,10 @@ impl Courts {
 
     pub fn display_postgres_enum(&self) {
         println!("CREATE TYPE kyc.courts AS enum(");
-        self.inner[0..self.inner.len()-1]
+        self.inner[0..self.inner.len() - 1]
             .iter()
             .for_each(|court| println!("\t'{}',", court.acronym));
-        
+
         // Safe unwrap since `from_file` guarantees at least one court was parsed
         let last = &self.inner.last().unwrap().acronym;
         println!("\t'{last}'\n);")
@@ -69,7 +82,7 @@ impl Courts {
         for court in self.inner.iter() {
             // Doc-string
             println!("\t/// {}", court.name);
-            println!("\t{},", court.acronym.to_case(Case::Pascal));
+            println!("\t{},", new_case(&court.acronym));
         }
         println!("}}")
     }
