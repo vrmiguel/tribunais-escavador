@@ -1,6 +1,6 @@
 #![feature(try_blocks)]
 
-use std::{env, fs, io::BufReader, path::Path};
+use std::{env, fs, io::BufReader, ops::Not, path::Path};
 
 use anyhow::{ensure, Context, Result};
 use convert_case::{Case, Casing};
@@ -13,19 +13,6 @@ struct Court {
 
 struct Courts {
     inner: Vec<Court>,
-}
-
-fn new_case(input: &str) -> String {
-    match input.contains('-') {
-        true => {
-            let terms: Vec<_> = input.split('-').map(|term| term.to_case(Case::Pascal)).collect();
-            
-            terms.join("_")
-        },
-        false => {
-            input.to_case(Case::Pascal)
-        },
-    }
 }
 
 impl Courts {
@@ -82,9 +69,18 @@ impl Courts {
         for court in self.inner.iter() {
             // Doc-string
             println!("\t/// {}", court.name);
-            println!("\t{},", new_case(&court.acronym));
+            Self::display_rust_acronym(&court.acronym)
+            // println!("\t{},", court.acronym);
         }
         println!("}}")
+    }
+
+    fn display_rust_acronym(acronym: &str) {
+        let contains_digit = || acronym.as_bytes().iter().any(u8::is_ascii_digit);
+        if acronym.contains("-").not() && contains_digit() {
+            println!("\t#[serde(rename = \"{}\")]", acronym);
+        }
+        println!("\t{}", acronym.to_case(Case::Pascal));
     }
 }
 
@@ -96,6 +92,11 @@ fn main() -> Result<()> {
 
     courts.display_postgres_enum();
     courts.display_rust_enum();
+
+    println!("{}", "TRT1".to_case(Case::Pascal));
+    println!("{}", "Trt1".to_case(Case::Cobol));
+    println!("{}", "TreCe".to_case(Case::Cobol));
+    
 
     Ok(())
 }
